@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.mapper.StudentMapper">
+    <!--分页查询学生信息-->
+    <select id="list" resultType="com.itheima.pojo.Student">
+        select
+        s.*,
+        c.name clazzName
+        from student s
+        left join clazz c on s.clazz_id = c.id
+        <where>
+            <if test="name != null and name != ''">
+                and s.name like concat('%', #{name}, '%')
+            </if>
+            <if test="degree != null and degree != ''">
+                and s.degree = #{degree}
+            </if>
+            <if test="clazzId != null and clazzId != ''">
+                and s.clazz_id = #{clazzId}
+            </if>
+        </where>
+        order by s.update_time desc
+    </select>
+
+    <!--删除学生信息-->
+    <delete id="deleteByIds">
+        delete from student where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--封装学生信息-->
+    <resultMap id="StudentResultMap" type="com.itheima.pojo.Student">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="no" property="no"/>
+        <result column="gender" property="gender"/>
+        <result column="phone" property="phone"/>
+        <result column="id_card" property="idCard"/>
+        <result column="is_college" property="isCollege"/>
+        <result column="address" property="address"/>
+        <result column="degree" property="degree"/>
+        <result column="graduation_date" property="graduationDate"/>
+        <result column="clazz_id" property="clazzId"/>
+        <result column="violation_count" property="violationCount"/>
+        <result column="violation_score" property="violationScore"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+    </resultMap>
+    <!--根据ID查询学生信息-->
+    <select id="getInfo" resultMap="StudentResultMap">
+        select
+        s.*,
+        c.name clazzName
+        from student s
+        left join clazz c on s.clazz_id = c.id
+        where s.id = #{id}
+    </select>
+
+    <!--根据ID修改学生信息-->
+    <update id="updateById">
+        update student
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="no != null">no = #{no},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="isCollege != null">is_college = #{isCollege},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="degree != null">degree = #{degree},</if>
+            <if test="graduationDate != null">graduation_date = #{graduationDate},</if>
+            <if test="clazzId != null">clazz_id = #{clazzId},</if>
+            <if test="violationCount != null">violation_count = #{violationCount},</if>
+            <if test="violationScore != null">violation_score = #{violationScore},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--统计学生学历人数-->
+    <select id="countStudentDegreeData" resultType="java.util.Map">
+        select
+            (case when degree = 1 then '初中'
+                  when degree = 2 then '高中'
+                  when degree = 3 then '大专'
+                  when degree = 4 then '本科'
+                  when degree = 5 then '硕士'
+                  when degree = 6 then '博士'
+                  else '其他' end) name,
+            count(*) value
+        from student group by degree
+    </select>
+
+    <!--统计学生班级人数-->
+    <select id="countStudentClazzData" resultType="java.util.Map">
+        select
+            c.name clazz,
+            count(s.id) num
+        from clazz c
+        left join student s on c.id = s.clazz_id
+        group by c.id
+    </select>
+</mapper>
